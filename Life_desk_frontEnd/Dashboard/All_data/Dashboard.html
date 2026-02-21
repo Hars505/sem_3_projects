@@ -1,0 +1,931 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LifeDesk - Complete Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --primary: #6366f1;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #3b82f6;
+        --bg-dark: #0f172a;
+        --bg-light: #ffffff;
+        --text-dark: #1e293b;
+        --text-light: #64748b;
+        --border: #e2e8f0;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+        color: var(--text-dark);
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      /* Header */
+      .header {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+
+      .header h1 {
+        font-size: 2.5em;
+        color: var(--primary);
+      }
+
+      .header-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #4f46e5;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 12px rgba(99, 102, 241, 0.3);
+      }
+
+      .btn-success {
+        background: var(--success);
+        color: white;
+      }
+
+      .btn-success:hover {
+        background: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 12px rgba(16, 185, 129, 0.3);
+      }
+
+      /* Stats Grid */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .stat-label {
+        color: var(--text-light);
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+
+      .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--primary);
+      }
+
+      .stat-change {
+        color: var(--text-light);
+        font-size: 12px;
+        margin-top: 8px;
+      }
+
+      /* Grid Layout */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .grid.full {
+        grid-template-columns: 1fr;
+      }
+
+      /* Cards */
+      .card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--border);
+      }
+
+      .card h2 {
+        font-size: 18px;
+        color: var(--primary);
+        margin: 0;
+      }
+
+      .chart-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 20px;
+      }
+
+      .chart-full {
+        height: 400px;
+      }
+
+      /* Table Styles */
+      .table-container {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+
+      th {
+        background: var(--border);
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        color: var(--text-dark);
+      }
+
+      td {
+        padding: 12px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      tr:hover {
+        background: #f8fafc;
+      }
+
+      /* Loading Spinner */
+      .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(99, 102, 241, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--primary);
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-light);
+      }
+
+      /* Badges */
+      .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .badge-primary {
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary);
+      }
+
+      .badge-success {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+      }
+
+      .badge-warning {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
+      }
+
+      /* Download Section */
+      .download-section {
+        background: #f8fafc;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+      }
+
+      .download-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 12px;
+      }
+
+      .download-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .download-btn {
+        padding: 8px 16px;
+        background: white;
+        border: 2px solid var(--success);
+        color: var(--success);
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .download-btn:hover {
+        background: var(--success);
+        color: white;
+      }
+
+      /* Error Message */
+      .error-message {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+
+      /* Image Container */
+      .image-container {
+        text-align: center;
+        margin: 20px 0;
+      }
+
+      .image-container img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      @media (max-width: 768px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <div>
+          <h1>📊 LifeDesk Analytics</h1>
+          <p style="color: var(--text-light); margin-top: 5px">
+            Complete system and data analysis dashboard
+          </p>
+        </div>
+        <div class="header-buttons">
+          <button class="btn btn-primary" onclick="refreshDashboard()">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+          <button class="btn btn-success" onclick="downloadAllAsZip()">
+            <i class="fas fa-file-archive"></i> Download All
+          </button>
+          <button class="btn btn-success" onclick="generateReportAndDownload()">
+            <i class="fas fa-download"></i> Export Report
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loadingContainer" class="loading" style="display: none">
+        <div class="spinner"></div>
+        <p>Loading analytics data...</p>
+      </div>
+
+      <!-- Error Container -->
+      <div id="errorContainer"></div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid" id="statsGrid">
+        <!-- Stats will be populated here -->
+      </div>
+
+      <!-- Password Analysis -->
+      <div class="grid">
+        <div class="card">
+          <div class="card-header">
+            <h2>🔐 Password Management</h2>
+            <span class="badge badge-primary" id="passwordCount">0 sites</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="passwordChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>📈 Password Strength</h2>
+          </div>
+          <div class="chart-container">
+            <canvas id="strengthChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Speed Test Analysis -->
+      <div class="grid full">
+        <div class="card">
+          <div class="card-header">
+            <h2>⚡ Speed Test Trends</h2>
+            <span class="badge badge-info" id="speedCount">0 tests</span>
+          </div>
+          <div class="chart-container chart-full">
+            <canvas id="speedChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- System Performance -->
+      <div class="grid">
+        <div class="card">
+          <div class="card-header">
+            <h2>💻 System Metrics</h2>
+          </div>
+          <div id="systemMetrics">
+            <!-- System metrics will be populated here -->
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>🌐 Network Info</h2>
+          </div>
+          <div id="networkInfo">
+            <!-- Network info will be populated here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Chart instances
+      const charts = {};
+
+      // API Configuration
+      const API_BASE = window.location.origin;
+
+      // Initialize Dashboard
+      document.addEventListener("DOMContentLoaded", () => {
+        console.log("Dashboard initializing...");
+        console.log("API Base:", API_BASE);
+
+        // Check authentication first
+        fetch(`${API_BASE}/api/current_user`)
+          .then((r) => r.json())
+          .then((data) => {
+            console.log("Current user ID:", data.user_id);
+            if (data.user_id === "0") {
+              showError("⚠️ Not authenticated! Please login first.");
+              showLoading(false);
+            } else {
+              refreshDashboard();
+            }
+          })
+          .catch((e) => {
+            console.error("Failed to check auth:", e);
+            refreshDashboard();
+          });
+      });
+
+      async function refreshDashboard() {
+        showLoading(true);
+        document.getElementById("errorContainer").innerHTML = "";
+        try {
+          const [passwordData, speedData, performanceData] = await Promise.all([
+            fetchPasswordAnalysis(),
+            fetchSpeedAnalysis(),
+            fetchPerformanceData(),
+          ]);
+
+          // Check if any response contains an error
+          if (passwordData.error) {
+            console.error("Password API error:", passwordData.error);
+            showError("❌ Password Data Error: " + passwordData.error);
+          }
+          if (speedData.error) {
+            console.error("Speed API error:", speedData.error);
+            showError("❌ Speed Data Error: " + speedData.error);
+          }
+          if (performanceData.error) {
+            console.error("Performance API error:", performanceData.error);
+            showError("❌ Performance Data Error: " + performanceData.error);
+          }
+
+          renderDashboard(passwordData, speedData, performanceData);
+          showLoading(false);
+          if (
+            !passwordData.error &&
+            !speedData.error &&
+            !performanceData.error
+          ) {
+            showError("✓ Dashboard updated successfully!");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          showError("Failed to load dashboard data: " + error.message);
+          showLoading(false);
+        }
+      }
+
+      async function fetchPasswordAnalysis() {
+        try {
+          console.log(
+            "Fetching password analysis from:",
+            `${API_BASE}/api/analysis/passwords`,
+          );
+          const res = await fetch(`${API_BASE}/api/analysis/passwords`);
+          console.log("Password response status:", res.status);
+
+          const data = await res.json();
+          console.log("Password data received:", JSON.stringify(data, null, 2));
+
+          if (!res.ok) {
+            console.error("Password API returned error:", data);
+            throw new Error(data.error || `HTTP ${res.status}`);
+          }
+
+          // Check if response has error field
+          if (data.error) {
+            console.error("Password data contains error:", data.error);
+            return data; // Return as-is so error is displayed
+          }
+
+          return data;
+        } catch (error) {
+          console.error("Password analysis fetch error:", error);
+          return {
+            error: error.message,
+            total_passwords: 0,
+            by_site: {},
+            rows: [],
+          };
+        }
+      }
+
+      async function fetchSpeedAnalysis() {
+        try {
+          console.log("Fetching speed analysis...");
+          const res = await fetch(`${API_BASE}/api/analysis/speedtest`);
+          console.log("Speed response status:", res.status);
+
+          if (!res.ok) {
+            const error = await res.json();
+            console.error("Speed API error:", error);
+            throw new Error(error.error || "Failed to fetch speed analysis");
+          }
+          const data = await res.json();
+          console.log("Speed data received:", data);
+          return data;
+        } catch (error) {
+          console.error("Speed analysis error:", error);
+          showError(`Speed Analysis: ${error.message}`);
+          return { total_tests: 0, test_history: [] };
+        }
+      }
+
+      async function fetchPerformanceData() {
+        try {
+          console.log("Fetching performance data...");
+          const res = await fetch(`${API_BASE}/api/performance/system-metrics`);
+          console.log("Performance response status:", res.status);
+
+          if (!res.ok) {
+            const error = await res.json();
+            console.error("Performance API error:", error);
+            throw new Error(error.error || "Failed to fetch performance data");
+          }
+          const data = await res.json();
+          console.log("Performance data received:", data);
+          return data;
+        } catch (error) {
+          console.error("Performance data error:", error);
+          showError(`Performance Data: ${error.message}`);
+          return {};
+        }
+      }
+
+      function renderDashboard(passwordData, speedData, performanceData) {
+        // Render Stats
+        renderStats(passwordData, speedData);
+
+        // Render Password Charts
+        renderPasswordCharts(passwordData);
+
+        // Render Speed Chart
+        renderSpeedChart(speedData);
+
+        // Render Performance Metrics
+        renderPerformanceMetrics(performanceData);
+      }
+
+      function renderStats(pwdData, spedData) {
+        const statsGrid = document.getElementById("statsGrid");
+        statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Total Passwords</div>
+                    <div class="stat-value">${pwdData.total_passwords || 0}</div>
+                    <div class="stat-change">Across ${pwdData.total_sites || 0} sites</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Speed Tests</div>
+                    <div class="stat-value">${spedData.total_tests || 0}</div>
+                    <div class="stat-change">Average: ${(spedData.average_download_mbps || 0).toFixed(1)} Mbps</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Upload Speed</div>
+                    <div class="stat-value">${(spedData.average_upload_mbps || 0).toFixed(1)}</div>
+                    <div class="stat-change">Mbps</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Ping</div>
+                    <div class="stat-value">${(spedData.average_ping_ms || 0).toFixed(1)}</div>
+                    <div class="stat-change">ms</div>
+                </div>
+            `;
+      }
+
+      function renderPasswordCharts(data) {
+        // Password by Site Chart
+        const sites = Object.keys(data.by_site || {}).slice(0, 10);
+        const counts = sites.map((s) => data.by_site[s].count);
+
+        if (charts.passwords) charts.passwords.destroy();
+        const pwdCtx = document
+          .getElementById("passwordChart")
+          .getContext("2d");
+
+        if (sites.length === 0) {
+          // Show empty state
+          pwdCtx.canvas.parentElement.innerHTML =
+            '<p style="text-align:center; color: #999; padding: 50px;">No password data available</p>';
+        } else {
+          charts.passwords = new Chart(pwdCtx, {
+            type: "bar",
+            data: {
+              labels: sites,
+              datasets: [
+                {
+                  label: "Passwords per Site",
+                  data: counts,
+                  backgroundColor: "#6366f1",
+                  borderRadius: 6,
+                },
+              ],
+            },
+            options: {
+              indexAxis: "y",
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+              },
+              scales: {
+                x: { beginAtZero: true },
+              },
+            },
+          });
+        }
+
+        // Strength Chart (dummy data - you can enhance this)
+        if (charts.strength) charts.strength.destroy();
+        const strengthCtx = document
+          .getElementById("strengthChart")
+          .getContext("2d");
+        const totalPwds = data.total_passwords || 0;
+        
+        // Properly distribute passwords across strength levels
+        let strongCount, mediumCount, weakCount;
+        if (totalPwds === 0) {
+          strongCount = mediumCount = weakCount = 0;
+        } else {
+          strongCount = Math.floor(totalPwds * 0.6);
+          mediumCount = Math.floor(totalPwds * 0.3);
+          weakCount = totalPwds - strongCount - mediumCount;
+        }
+
+        if (totalPwds === 0) {
+          strengthCtx.canvas.parentElement.innerHTML =
+            '<p style="text-align:center; color: #999; padding: 50px;">No strength data available</p>';
+        } else {
+          charts.strength = new Chart(strengthCtx, {
+            type: "doughnut",
+            data: {
+              labels: ["Strong", "Medium", "Weak"],
+              datasets: [
+                {
+                  data: [strongCount, mediumCount, weakCount],
+                  backgroundColor: ["#10b981", "#f59e0b", "#ef4444"],
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { position: "bottom" },
+              },
+            },
+          });
+        }
+
+        document.getElementById("passwordCount").textContent =
+          `${data.total_sites || 0} sites`;
+      }
+
+      function renderSpeedChart(data) {
+        const tests = data.test_history || [];
+        const labels = tests.map((_, i) => `Test ${i + 1}`).reverse();
+        const downloads = tests
+          .map((t) => t.download_speed_in_mbps || 0)
+          .reverse();
+        const uploads = tests.map((t) => t.upload_speed_in_mbps || 0).reverse();
+
+        if (charts.speed) charts.speed.destroy();
+        const speedCtx = document.getElementById("speedChart").getContext("2d");
+
+        if (tests.length === 0) {
+          speedCtx.canvas.parentElement.innerHTML =
+            '<p style="text-align:center; color: #999; padding: 100px;">No speed test data available</p>';
+        } else {
+          charts.speed = new Chart(speedCtx, {
+            type: "line",
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: "Download (Mbps)",
+                  data: downloads,
+                  borderColor: "#10b981",
+                  backgroundColor: "rgba(16, 185, 129, 0.1)",
+                  tension: 0.4,
+                  fill: true,
+                },
+                {
+                  label: "Upload (Mbps)",
+                  data: uploads,
+                  borderColor: "#3b82f6",
+                  backgroundColor: "rgba(59, 130, 246, 0.1)",
+                  tension: 0.4,
+                  fill: true,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { position: "top" },
+              },
+              scales: {
+                y: { beginAtZero: true },
+              },
+            },
+          });
+        }
+
+        document.getElementById("speedCount").textContent =
+          `${data.total_tests || 0} tests`;
+      }
+
+      function renderPerformanceMetrics(data) {
+        const sysMeta = document.getElementById("systemMetrics");
+        const netInfo = document.getElementById("networkInfo");
+
+        let sysHtml = "<table>";
+        let hasSysData = false;
+
+        if (data.cpu_percent !== undefined) {
+          sysHtml += `<tr><th>CPU</th><td>${data.cpu_percent.toFixed(1)}%</td></tr>`;
+          hasSysData = true;
+        }
+        if (data.memory) {
+          sysHtml += `<tr><th>Memory Used</th><td>${data.memory.used_gb} GB / ${data.memory.total_gb} GB</td></tr>`;
+          sysHtml += `<tr><th>Memory %</th><td>${data.memory.percent.toFixed(1)}%</td></tr>`;
+          hasSysData = true;
+        }
+        if (data.disk) {
+          sysHtml += `<tr><th>Disk Used</th><td>${data.disk.used_gb} GB / ${data.disk.total_gb} GB</td></tr>`;
+          hasSysData = true;
+        }
+        if (data.boot_time) {
+          sysHtml += `<tr><th>Boot Time</th><td>${data.boot_time}</td></tr>`;
+          hasSysData = true;
+        }
+        sysHtml += "</table>";
+
+        sysMeta.innerHTML = hasSysData
+          ? sysHtml
+          : '<p style="color: #999;">No system metrics available</p>';
+
+        let netHtml = "<table>";
+        let hasNetData = false;
+
+        if (data.platform) {
+          netHtml += `<tr><th>Platform</th><td>${data.platform}</td></tr>`;
+          hasNetData = true;
+        }
+        if (data.processor) {
+          netHtml += `<tr><th>Processor</th><td>${data.processor}</td></tr>`;
+          hasNetData = true;
+        }
+        if (data.python_version) {
+          netHtml += `<tr><th>Python</th><td>${data.python_version}</td></tr>`;
+          hasNetData = true;
+        }
+        if (data.cpu_count) {
+          netHtml += `<tr><th>CPU Cores</th><td>${data.cpu_count}</td></tr>`;
+          hasNetData = true;
+        }
+        netHtml += "</table>";
+
+        netInfo.innerHTML = hasNetData
+          ? netHtml
+          : '<p style="color: #999;">No network info available</p>';
+      }
+
+      async function generateReportAndDownload() {
+        showLoading(true);
+        try {
+          const res = await fetch(`${API_BASE}/api/analysis/visualize`);
+          const data = await res.json();
+
+          if (data.error) {
+            showError("Failed to generate report: " + data.error);
+            showLoading(false);
+            return;
+          }
+
+          const reportContainer = document.getElementById("reportContainer");
+          if (data.report_url) {
+            reportContainer.innerHTML = `<div class="image-container"><img src="${data.report_url}" alt="Analysis Report" onerror="this.parentElement.innerHTML='<p style=\\\"color:#999;\\\">Failed to load report image</p>'"></div>`;
+          }
+
+          // Get CSV links from the complete analysis endpoint
+          const analysisRes = await fetch(`${API_BASE}/analytic`);
+          const analysisData = await analysisRes.json();
+
+          const downloadLinks = document.getElementById("downloadLinks");
+          let linksHtml = "";
+
+          if (
+            analysisData.visualization &&
+            analysisData.visualization.csv_urls
+          ) {
+            analysisData.visualization.csv_urls.forEach((url, idx) => {
+              const fileName = url.split("/").pop();
+              const fileType = fileName.includes("password")
+                ? "Passwords CSV"
+                : "Speedtest CSV";
+              linksHtml += `
+                            <button class="download-btn" onclick="window.location.href='${url}'">
+                                <i class="fas fa-file-csv"></i> ${fileType}
+                            </button>
+                        `;
+            });
+          }
+
+          if (linksHtml) {
+            downloadLinks.innerHTML = linksHtml;
+          } else {
+            downloadLinks.innerHTML =
+              '<p style="color: var(--text-light);">No CSV files available yet</p>';
+          }
+
+          showLoading(false);
+          showError("✓ Report generated successfully!");
+        } catch (error) {
+          console.error("Error:", error);
+          showError("Failed to generate report: " + error.message);
+          showLoading(false);
+        }
+      }
+
+      async function downloadAllAsZip() {
+        showLoading(true);
+        try {
+          const response = await fetch(`${API_BASE}/api/analysis/export-all`);
+          if (!response.ok) {
+            try {
+              const error = await response.json();
+              showError(
+                "Failed to download: " + (error.error || "Unknown error"),
+              );
+            } catch (e) {
+              showError("Failed to download: HTTP " + response.status);
+            }
+            showLoading(false);
+            return;
+          }
+
+          // Create blob and download
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `lifedesk_analysis_${new Date().toISOString().split("T")[0]}.zip`;
+          document.body.appendChild(link);
+          link.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(link);
+
+          showLoading(false);
+          showError("✓ Download complete!");
+        } catch (error) {
+          console.error("Error:", error);
+          showError("Failed to download ZIP file: " + error.message);
+          showLoading(false);
+        }
+      }
+
+      function showLoading(show) {
+        document.getElementById("loadingContainer").style.display = show
+          ? "block"
+          : "none";
+      }
+
+      function showError(message) {
+        const errorContainer = document.getElementById("errorContainer");
+        const isSuccess = message.includes("✓");
+        const bgColor = isSuccess
+          ? "rgba(16, 185, 129, 0.1)"
+          : "rgba(239, 68, 68, 0.1)";
+        const textColor = isSuccess ? "#10b981" : "#ef4444";
+
+        errorContainer.innerHTML = `<div class="error-message" style="background: ${bgColor}; color: ${textColor};"><i class="fas ${isSuccess ? "fa-check-circle" : "fa-exclamation-circle"}"></i> ${message}</div>`;
+
+        if (!isSuccess) {
+          setTimeout(() => {
+            errorContainer.innerHTML = "";
+          }, 5000);
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Internet Speed Test History</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #0f1117;
+        color: #e1e1e6;
+        min-height: 100vh;
+        padding: 32px 24px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: #fff;
+      }
+
+      .subtitle {
+        color: #8b8b9e;
+        font-size: 14px;
+        margin-bottom: 28px;
+      }
+
+      /* Summary Cards */
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+      }
+
+      .card {
+        background: #1a1b26;
+        border: 1px solid #2a2b3d;
+        border-radius: 12px;
+        padding: 20px;
+      }
+
+      .card-label {
+        font-size: 12px;
+        color: #8b8b9e;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+      }
+
+      .card-value {
+        font-size: 26px;
+        font-weight: 700;
+      }
+
+      .card-unit {
+        font-size: 13px;
+        color: #8b8b9e;
+        margin-left: 4px;
+      }
+
+      .card.download .card-value {
+        color: #22c55e;
+      }
+      .card.upload .card-value {
+        color: #3b82f6;
+      }
+      .card.latency .card-value {
+        color: #f59e0b;
+      }
+      .card.peak .card-value {
+        color: #a78bfa;
+      }
+
+      /* Table */
+      .table-wrapper {
+        background: #1a1b26;
+        border: 1px solid #2a2b3d;
+        border-radius: 12px;
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 900px;
+      }
+
+      thead th {
+        text-align: left;
+        padding: 14px 16px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #8b8b9e;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid #2a2b3d;
+        background: #15161f;
+        position: sticky;
+        top: 0;
+      }
+
+      tbody tr {
+        border-bottom: 1px solid #1f2030;
+        transition: background 0.15s;
+      }
+
+      tbody tr:last-child {
+        border-bottom: none;
+      }
+      tbody tr:hover {
+        background: #1f2137;
+      }
+
+      td {
+        padding: 14px 16px;
+        font-size: 14px;
+        vertical-align: top;
+      }
+
+      .id-cell {
+        color: #8b8b9e;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Server JSON */
+      .server-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .server-host {
+        font-weight: 600;
+        color: #e1e1e6;
+      }
+
+      .server-sponsor {
+        font-size: 12px;
+        color: #8b8b9e;
+      }
+
+      .server-meta {
+        font-size: 11px;
+        color: #565670;
+        font-family: "Courier New", monospace;
+      }
+
+      /* Badges */
+      .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .badge.green {
+        background: #0b2e1a;
+        color: #22c55e;
+      }
+      .badge.blue {
+        background: #0c1e3d;
+        color: #3b82f6;
+      }
+      .badge.amber {
+        background: #2b1f05;
+        color: #f59e0b;
+      }
+      .badge.red {
+        background: #2d0f0f;
+        color: #ef4444;
+      }
+
+      /* Time */
+      .time-cell {
+        font-size: 13px;
+        color: #a0a0b8;
+        white-space: nowrap;
+      }
+
+      /* JSON toggle */
+      .json-toggle {
+        font-size: 11px;
+        color: #3b82f6;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 2px 0;
+        margin-top: 4px;
+      }
+
+      .json-toggle:hover {
+        text-decoration: underline;
+      }
+
+      .json-raw {
+        display: none;
+        margin-top: 6px;
+        background: #12131c;
+        border: 1px solid #2a2b3d;
+        border-radius: 6px;
+        padding: 8px 10px;
+        font-family: "Courier New", monospace;
+        font-size: 11px;
+        color: #8b8b9e;
+        white-space: pre;
+        max-width: 300px;
+        overflow-x: auto;
+      }
+
+      .json-raw .key {
+        color: #a78bfa;
+      }
+      .json-raw .str {
+        color: #22c55e;
+      }
+      .json-raw .num {
+        color: #f59e0b;
+      }
+
+      @media (max-width: 640px) {
+        body {
+          padding: 16px 12px;
+        }
+        h1 {
+          font-size: 22px;
+        }
+        .summary {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Internet Speed Test History</h1>
+      <p class="subtitle">
+        Showing <span id="record-count">0</span> test results sorted by ID
+        (ascending)
+      </p>
+
+      <div class="summary" id="summary-cards"></div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Server</th>
+              <th>Download (Mbps)</th>
+              <th>Upload (Mbps)</th>
+              <th>Latency (ms)</th>
+              <th>Test Time</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      // ---- Sample Data ----
+      fetch("/api/Speedtest/History")
+        .then((response) => response.json())
+        .then((history) => {
+          const speedData = history.map((record) => ({
+            id: record.id,
+            server: JSON.parse(record.server),
+            download_speed_in_mbps: record.download_speed_in_mbps,
+            upload_speed_in_mbps: record.upload_speed_in_mbps,
+            latency_in_ms: record.latency_in_ms,
+            test_time: record.test_time,
+          }));
+
+          renderSummary(speedData);
+          renderTable(speedData);
+        })
+        .catch((err) => {
+          console.error("Failed to load speed test history:", err);
+        });
+      // ---- Helpers ----
+      function downloadBadgeClass(speed) {
+        if (speed >= 300) return "green";
+        if (speed >= 100) return "blue";
+        if (speed >= 50) return "amber";
+        return "red";
+      }
+
+      function uploadBadgeClass(speed) {
+        if (speed >= 150) return "green";
+        if (speed >= 50) return "blue";
+        if (speed >= 20) return "amber";
+        return "red";
+      }
+
+      function latencyBadgeClass(ms) {
+        if (ms <= 10) return "green";
+        if (ms <= 25) return "blue";
+        if (ms <= 50) return "amber";
+        return "red";
+      }
+
+      function formatTime(iso) {
+        const d = new Date(iso);
+        return d.toLocaleString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
+      }
+
+      function syntaxHighlightJSON(obj) {
+        const json = JSON.stringify(obj, null, 2);
+        return json
+          .replace(/"([^"]+)":/g, '<span class="key">"$1"</span>:')
+          .replace(/: "([^"]+)"/g, ': <span class="str">"$1"</span>')
+          .replace(/: (\d+)/g, ': <span class="num">$1</span>');
+      }
+
+      // ---- Render Summary ----
+      function renderSummary(data) {
+        const avgDown = (
+          data.reduce((s, d) => s + d.download_speed_in_mbps, 0) / data.length
+        ).toFixed(1);
+        const avgUp = (
+          data.reduce((s, d) => s + d.upload_speed_in_mbps, 0) / data.length
+        ).toFixed(1);
+        const avgLat = (
+          data.reduce((s, d) => s + d.latency_in_ms, 0) / data.length
+        ).toFixed(0);
+        const peakDown = Math.max(
+          ...data.map((d) => d.download_speed_in_mbps),
+        ).toFixed(1);
+
+        const cards = [
+          {
+            label: "Avg Download",
+            value: avgDown,
+            unit: "Mbps",
+            cls: "download",
+          },
+          { label: "Avg Upload", value: avgUp, unit: "Mbps", cls: "upload" },
+          { label: "Avg Latency", value: avgLat, unit: "ms", cls: "latency" },
+          {
+            label: "Peak Download",
+            value: peakDown,
+            unit: "Mbps",
+            cls: "peak",
+          },
+        ];
+
+        document.getElementById("summary-cards").innerHTML = cards
+          .map(
+            (c) => `
+        <div class="card ${c.cls}">
+          <div class="card-label">${c.label}</div>
+          <div class="card-value">${c.value}<span class="card-unit">${c.unit}</span></div>
+        </div>
+      `,
+          )
+          .join("");
+      }
+      // ---- Render Table ----
+      function renderTable(data) {
+        const sorted = [...data].sort((a, b) => a.id - b.id);
+        document.getElementById("record-count").textContent = sorted.length;
+        document.getElementById("table-body").innerHTML = sorted
+          .map(
+            (row) => `
+        <tr>
+          <td class="id-cell">${row.id}</td>
+          <td>
+            <div class="server-info">
+              <span class="server-host">${row.server.Host}</span>
+              <span class="server-sponsor">${row.server.Sponsor} &mdash; ${row.server.Country}</span>
+              <span class="server-meta">ID: ${row.server.Server_Id}</span>
+              <button class="json-toggle" onclick="toggleJSON(this)">Show JSON</button>
+              <div class="json-raw">${syntaxHighlightJSON(row.server)}</div>
+            </div>
+          </td>
+          <td><span class="badge ${downloadBadgeClass(row.download_speed_in_mbps)}">${row.download_speed_in_mbps.toFixed(2)}</span></td>
+          <td><span class="badge ${uploadBadgeClass(row.upload_speed_in_mbps)}">${row.upload_speed_in_mbps.toFixed(2)}</span></td>
+          <td><span class="badge ${latencyBadgeClass(row.latency_in_ms)}">${row.latency_in_ms}</span></td>
+          <td class="time-cell">${formatTime(row.test_time)}</td>
+        </tr>
+      `,
+          )
+          .join("");
+      }
+      function toggleJSON(btn) {
+        const raw = btn.nextElementSibling;
+        const visible = raw.style.display === "block";
+        raw.style.display = visible ? "none" : "block";
+        btn.textContent = visible ? "Show JSON" : "Hide JSON";
+      }
+    </script>
+  </body>
+</html>
