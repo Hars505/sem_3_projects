@@ -1,0 +1,7 @@
+test_id,user_id,server,download_speed_in_mbps,upload_speed_in_mbps,latency_in_ms,tested_at
+19,1,"{""Host"": ""stmum.tatatelebusiness.com:8080"", ""Sponsor"": ""Tata Teleservices Ltd"", ""Country"": ""India"", ""Server_Id"": 839.0015455376647}",109.06,21.63,101.87,2026-02-20T12:22:29
+18,1,"{""Host"": ""speedtest.netfix.org.in:8080"", ""Sponsor"": ""Netfix Networks Opc Pvt Ltd"", ""Country"": ""India"", ""Server_Id"": 839.0015455376647}",91.57,20.57,185.44,2026-02-20T12:19:03
+15,1,"{""Host"": ""speedtest.shreenet.com:8080"", ""Sponsor"": ""Shreenet"", ""Country"": ""India"", ""Server_Id"": 146.18914922329927}",19.62,20.19,24.73,2026-02-18T17:22:57
+12,1,"{""Host"": ""speedahm1.jioconnect.com:8080"", ""Sponsor"": ""Jio"", ""Country"": ""India"", ""Server_Id"": 1.7038263920296366}",60.69,18.04,73.46,2026-02-11T13:37:39
+11,1,"{""Host"": ""speedahm1.jioconnect.com:8080"", ""Sponsor"": ""Jio"", ""Country"": ""India"", ""Server_Id"": 1.7038263920296366}",47.84,16.78,64.42,2026-02-11T12:36:51
+10,1,"{""Host"": ""speedtest1.ishancloud.com:8080"", ""Sponsor"": ""Ishan Netsol Pvt Ltd"", ""Country"": ""India"", ""Server_Id"": 0.7740287400689583}",33.21,20.11,103.03,2026-02-11T11:39:35
